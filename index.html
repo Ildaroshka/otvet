@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Современная интерактивная блок-схема</title>
+<link rel="stylesheet" href="style.css">
+<style>
+
+</style>
+</head>
+<body>
+<div class="screen" id="app"></div>
+
+<script>
+const app = document.getElementById("app");
+let step = 0;
+let answers = [];
+let resultType = ""; // глобальная
+
+const questions = [
+    { text: "К вам пишут клиенты?", answers: ["Да", "Нет"] },
+    { text: "Клиенты задают одни и те же вопросы?", answers: ["Да", "Иногда", "Почти нет"] },
+    { text: "Вы отвечаете на них вручную?", answers: ["Да", "Нет"] },
+    { text: "Если не ответить быстро — клиент уходит?", answers: ["Да", "Иногда", "Нет"] },
+    { text: "Есть конфликты / возвраты?", answers: ["Да", "Нет"] }
+];
+
+function start() {
+    step = 0;
+    answers = [];
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const q = questions[step];
+    app.innerHTML = `
+        <h1>${q.text}</h1>
+        ${q.answers.map(a => `
+            <div class="panel ${a.startsWith("Да") ? "yes" : a === "Иногда" ? "maybe" : "no"}"
+                 onclick="answer('${a}')">${a}</div>
+        `).join("")}
+    `;
+}
+
+function answer(val) {
+    answers.push(val);
+
+    // РАННИЙ ВЫХОД: если на первый вопрос ответ "Нет"
+    if (step === 0 && val === "Нет") {
+        // сразу показываем "бот не нужен"
+        renderDiagramEarlyExit();
+        return;
+    }
+
+    step++;
+    step < questions.length ? renderQuestion() : renderDiagram();
+}
+
+
+function renderDiagramEarlyExit() {
+    const explanation = "Пока клиентов нет — чат-бот не нужен, бизнес работает без автоматизации.";
+
+    app.innerHTML = `
+      <div class="diagram">
+
+        <div class="block client">
+          <div class="title">👤 Клиенты отсутствуют</div>
+          <div class="subtitle">Пока нет обращений от клиентов</div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <div class="block human">
+          <div class="title">👤 Чат-бот не нужен</div>
+          <div class="subtitle">${explanation}</div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <div class="block money">
+          <div class="title">💰 Результат</div>
+          <div class="subtitle">Автоматизация пока не требуется</div>
+        </div>
+
+      </div>
+
+      <button class="save-btn" onclick="save()">💾 Сохранить кейс</button>
+      <button class="restart-btn" onclick="start()">🔁 Новый ИП</button>
+    `;
+
+    const blocks = document.querySelectorAll('.block');
+    blocks.forEach((b, i) =>
+        setTimeout(() => b.classList.add('show'), i * 400)
+    );
+}
+
+
+function renderDiagram() {
+
+    let resultType = "none";
+    let explanation = "";
+
+    if (
+        answers[0] === "Да" &&
+        answers[1] !== "Почти нет" &&
+        answers[2] === "Да" &&
+        answers[3] !== "Нет"
+    ) {
+        resultType = "bot";
+        explanation = "Здесь клиенты ждут ответа, бизнес теряет деньги — чат-бот нужен обязательно.";
+    } 
+    else if (
+        answers[0] === "Да" &&
+        answers[1] === "Иногда"
+    ) {
+        resultType = "partial";
+        explanation = "Часть вопросов можно автоматизировать и снизить нагрузку.";
+    } 
+    else {
+        resultType = "human";
+        explanation = "Сейчас чат-бот не обязателен — можно вернуться к нему позже.";
+    }
+
+    app.innerHTML = `
+      <div class="diagram">
+
+        <div class="block client">
+          <div class="title">👤 Клиент пишет</div>
+          <div class="subtitle">Клиенты уже обращаются в бизнес</div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <div class="block problem">
+          <div class="title">⚠️ Хаос и потери</div>
+          <div class="subtitle">Долго отвечают — клиенты уходят</div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <div class="block ${
+            resultType === "bot" ? "bot" :
+            resultType === "partial" ? "maybe-bot" :
+            "human"
+        }">
+          <div class="title">
+            ${
+              resultType === "bot" ? "🤖 Чат-бот" :
+              resultType === "partial" ? "🤖 Чат-бот частично" :
+              "👤 Менеджер"
+            }
+          </div>
+          <div class="subtitle">
+            ${explanation}
+          </div>
+        </div>
+
+        <div class="arrow"></div>
+
+        <div class="block money">
+          <div class="title">💰 Результат</div>
+          <div class="subtitle">
+            ${
+              resultType === "bot" ? "Больше заявок, меньше хаоса" :
+              resultType === "partial" ? "Экономия времени и ресурсов" :
+              "Контроль вручную без автоматизации"
+            }
+          </div>
+        </div>
+
+      </div>
+
+      <button class="save-btn" onclick="saveAsTxt()">💾 Сохранить кейс</button>
+      <button class="restart-btn" onclick="start()">🔁 Новый ИП</button>
+    `;
+
+    // анимация блоков
+    const blocks = document.querySelectorAll('.block');
+    blocks.forEach((b, i) =>
+        setTimeout(() => b.classList.add('show'), i * 400)
+    );
+}
+
+function saveAsTxt() {
+    // Собираем текст
+    let text = `Кейс от ${new Date().toLocaleString()}\n\n`;
+    text += "Вопросы и ответы:\n";
+
+    questions.forEach((q, i) => {
+        const ans = answers[i] || "—";
+        text += `${i+1}. ${q.text} — ${ans}\n`;
+    });
+
+    text += `\nРешение:\n`;
+
+    // resultType и объяснение берем из renderDiagram
+    let resultText = "";
+    if (resultType === "bot") resultText = "🤖 Чат-бот\nБольше заявок, меньше хаоса";
+    else if (resultType === "partial") resultText = "🤖 Чат-бот частично\nЭкономия времени и ресурсов";
+    else resultText = "👤 Менеджер\nКонтроль вручную без автоматизации";
+
+    text += resultText;
+
+    // создаем файл и скачиваем
+    const blob = new Blob([text], {type: "text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `case_${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+
+function save() {
+    localStorage.setItem("case_" + Date.now(), JSON.stringify(answers));
+    alert("Кейс сохранён");
+}
+
+// стартовый экран
+app.innerHTML = `
+    <h1>Разберём бизнес за 5 минут</h1>
+    <div class="panel yes" onclick="start()">НАЧАТЬ</div>
+`;
+</script>
+</body>
+</html>

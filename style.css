@@ -1,0 +1,126 @@
+/* Минимальные стили для проверки */
+html, body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+    height: 100%;
+    overflow-y: auto; /* прокрутка для кнопок */
+}
+
+.screen {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* вертикальное центрирование */
+    align-items: center;     /* горизонтальное центрирование */
+    text-align: center;
+}
+
+.diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* вертикально центрируем блоки */
+    max-height: 80vh;        /* максимум 80% экрана для диаграммы */
+    padding-bottom: 150px;
+    margin-top: 40px;   /* место для кнопок */       /* если диаграмма длинная, появится прокрутка внутри */
+}
+
+.save-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.restart-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+
+h1 {
+    font-size: 50px;
+    margin-bottom: 40px;
+    line-height: 1.2;
+}
+
+.panel {
+    width: 86%;
+    max-width: 700px;
+    padding: 30px;
+    margin: 20px auto;
+    font-size: 32px;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: #fff;
+}
+.panel:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(0,0,0,0.2); }
+
+.yes { background: #2e55cc; }
+.maybe { background: #0f87f1; }
+.no { background: #a33ce7; }
+
+.block {
+    min-width: 280px;
+    padding: 25px 40px;
+    margin: 20px 0;
+    border-radius: 25px;
+    font-size: 28px;
+    font-weight: bold;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(-50px);
+    transition: opacity 0.5s, transform 0.5s;
+}
+.block.show { opacity: 1; transform: translateY(0); }
+
+.client { background: #ecf0f1; color: #000; }
+.problem { background: #e74c3c; color: #fff; }
+.bot { background: #2ecc71; color: #fff; box-shadow: 0 0 35px rgba(46,204,113,0.6);}
+.maybe-bot { background: #f1c40f; color: #000; box-shadow: 0 0 35px rgba(241,196,15,0.6);}
+.human { background: #e74c3c; color: #fff; box-shadow: 0 0 35px rgba(231,76,60,0.6);}
+.money { background: #ecf0f1; color: #000; }
+
+.arrow {
+    width: 4px;
+    height: 40px;
+    background: #000;
+    clip-path: polygon(0 0, 100% 0, 100% 80%, 120% 80%, 50% 100%, -20% 80%, 0 80%);
+    margin: -10px 0 10px 0;
+}
+.save-btn {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    padding: 15px 25px;
+    font-size: 20px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    background: #3498db;
+    color: #fff;
+}
+.restart-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    font-size: 20px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    background: #95a5a6;
+    color: #fff;
+}
+
+/* текст внутри блоков */
+.title { font-size: 30px; margin-bottom: 8px; }
+.subtitle { font-size: 18px; font-weight: normal; opacity: 0.85; line-height: 1.3; }
+
+
