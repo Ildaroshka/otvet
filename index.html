@@ -9,219 +9,266 @@
 </style>
 </head>
 <body>
-<div class="screen" id="app"></div>
+<div class="screen" id="app">
+    <div class="tree">
+  <div class="node center">
+  <div class="title">Где бизнес теряет деньги?</div>
+  <div class="subtitle">Выберите зону</div>
+</div>
+
+
+  <div class="node marketing"
+     data-hint="Клиенты не понимают продукт, не доходят до заявки"
+     onclick="startFlow('marketing')">
+  📣<br>Маркетинг
+</div>
+
+<div class="node support"
+     data-hint="Клиенты пишут с вопросами и проблемами"
+     onclick="startFlow('support')">
+  🛠<br>Поддержка
+</div>
+
+<div class="node hiring"
+     data-hint="Сложно находить и отбирать сотрудников"
+     onclick="startFlow('hiring')">
+  👥<br>Найм
+</div>
+
+<div class="node onboarding"
+     data-hint="Новые сотрудники долго входят в работу"
+     onclick="startFlow('onboarding')">
+  🎓<br>Онбординг
+</div>
+
+
+</div>
 
 <script>
 const app = document.getElementById("app");
+
+let currentFlow = null;
 let step = 0;
 let answers = [];
-let resultType = ""; // глобальная
+let resultType = "";
 
-const questions = [
-    { text: "К вам пишут клиенты?", answers: ["Да", "Нет"] },
-    { text: "Клиенты задают одни и те же вопросы?", answers: ["Да", "Иногда", "Почти нет"] },
-    { text: "Вы отвечаете на них вручную?", answers: ["Да", "Нет"] },
-    { text: "Если не ответить быстро — клиент уходит?", answers: ["Да", "Иногда", "Нет"] },
-    { text: "Есть конфликты / возвраты?", answers: ["Да", "Нет"] }
-];
+/* ====== СЦЕНАРИИ ====== */
+const flows = {
+  marketing: {
+    name: "Маркетинг",
+    questions: [
+      {
+        text: "Клиенты понимают, чем вы занимаетесь и что вы продаёте?",
+        answers: ["Да", "Нет"]
+      },
+      {
+        text: "Вы уведомляете клиентов о новых услугах, акциях, изменениях?",
+        answers: ["Да", "Иногда / Нет"]
+      },
+      {
+        text: "Часть клиентов теряется до заявки или покупки?",
+        answers: ["Да", "Нет"]
+      }
+    ]
+  },
 
-function start() {
+  support: {
+    name: "Техподдержка",
+    questions: [
+      {
+        text: "Клиенты пишут вам с вопросами или проблемами?",
+        answers: ["Да", "Нет"]
+      },
+      {
+        text: "Вопросы и проблемы часто повторяются?",
+        answers: ["Да", "Нет"]
+      },
+      {
+        text: "Если долго не отвечать — клиент злится или уходит?",
+        answers: ["Да", "Нет"]
+      }
+    ]
+  },
+
+  hiring: {
+    name: "Найм",
+    questions: [
+      {
+        text: "Вы регулярно ищете сотрудников?",
+        answers: ["Да", "Иногда", "Нет"]
+      },
+      {
+        text: "Кандидаты часто задают одни и те же вопросы?",
+        answers: ["Да", "Нет"]
+      },
+      {
+        text: "Много времени уходит на первичное общение?",
+        answers: ["Да", "Нет"]
+      }
+    ]
+  },
+
+  onboarding: {
+    name: "Онбординг",
+    questions: [
+      {
+        text: "Новым сотрудникам сложно разобраться в процессах?",
+        answers: ["Да", "Нет"]
+      },
+      {
+        text: "Ввод в должность занимает много времени?",
+        answers: ["Да", "Нет"]
+      },
+      {
+        text: "Сотрудники часто задают одинаковые вопросы?",
+        answers: ["Да", "Нет"]
+      }
+    ]
+  }
+};
+
+/* ====== СТАРТ ====== */
+function startFlow(type) {
+    currentFlow = flows[type];
     step = 0;
     answers = [];
     renderQuestion();
 }
 
+/* ====== ВОПРОС ====== */
 function renderQuestion() {
-    const q = questions[step];
+    const q = currentFlow.questions[step];
+
     app.innerHTML = `
         <h1>${q.text}</h1>
         ${q.answers.map(a => `
-            <div class="panel ${a.startsWith("Да") ? "yes" : a === "Иногда" ? "maybe" : "no"}"
+            <div class="panel ${a === "Да" ? "yes" : "no"}"
                  onclick="answer('${a}')">${a}</div>
         `).join("")}
     `;
 }
 
+/* ====== ОТВЕТ ====== */
 function answer(val) {
     answers.push(val);
 
-    // РАННИЙ ВЫХОД: если на первый вопрос ответ "Нет"
-    if (step === 0 && val === "Нет") {
-        // сразу показываем "бот не нужен"
-        renderDiagramEarlyExit();
-        return;
+    // ранние выходы для маркетинга
+    if (currentFlow.name === "Маркетинг") {
+        if (step === 0 && val === "Нет") {
+            resultType = "bot_explain";
+            return renderDiagram();
+        }
+        if (step === 1 && val !== "Да") {
+            resultType = "bot_notify";
+            return renderDiagram();
+        }
     }
 
     step++;
-    step < questions.length ? renderQuestion() : renderDiagram();
+
+    step < currentFlow.questions.length
+        ? renderQuestion()
+        : finalize();
 }
 
+/* ====== ФИНАЛ ====== */
+function finalize() {
 
-function renderDiagramEarlyExit() {
-    const explanation = "Пока клиентов нет — чат-бот не нужен, бизнес работает без автоматизации.";
-
-    app.innerHTML = `
-      <div class="diagram">
-
-        <div class="block client">
-          <div class="title">👤 Клиенты отсутствуют</div>
-          <div class="subtitle">Пока нет обращений от клиентов</div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <div class="block human">
-          <div class="title">👤 Чат-бот не нужен</div>
-          <div class="subtitle">${explanation}</div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <div class="block money">
-          <div class="title">💰 Результат</div>
-          <div class="subtitle">Автоматизация пока не требуется</div>
-        </div>
-
-      </div>
-
-      <button class="save-btn" onclick="save()">💾 Сохранить кейс</button>
-      <button class="restart-btn" onclick="start()">🔁 Новый ИП</button>
-    `;
-
-    const blocks = document.querySelectorAll('.block');
-    blocks.forEach((b, i) =>
-        setTimeout(() => b.classList.add('show'), i * 400)
-    );
-}
-
-
-function renderDiagram() {
-
-    let resultType = "none";
-    let explanation = "";
-
-    if (
-        answers[0] === "Да" &&
-        answers[1] !== "Почти нет" &&
-        answers[2] === "Да" &&
-        answers[3] !== "Нет"
-    ) {
-        resultType = "bot";
-        explanation = "Здесь клиенты ждут ответа, бизнес теряет деньги — чат-бот нужен обязательно.";
-    } 
-    else if (
-        answers[0] === "Да" &&
-        answers[1] === "Иногда"
-    ) {
-        resultType = "partial";
-        explanation = "Часть вопросов можно автоматизировать и снизить нагрузку.";
-    } 
-    else {
-        resultType = "human";
-        explanation = "Сейчас чат-бот не обязателен — можно вернуться к нему позже.";
+    if (currentFlow.name === "Маркетинг") {
+        resultType = answers[2] === "Да" ? "bot_funnel" : "human";
     }
 
+    if (currentFlow.name === "Техподдержка") {
+        resultType = answers[2] === "Да" ? "bot_support" : "human";
+    }
+
+    if (currentFlow.name === "Найм") {
+        resultType = answers[1] === "Да" && answers[2] === "Да"
+            ? "bot_hr"
+            : "human";
+    }
+
+    if (currentFlow.name === "Онбординг") {
+        resultType = answers[0] === "Да"
+            ? "bot_onboarding"
+            : "human";
+    }
+
+    renderDiagram();
+}
+
+
+/* ====== ДИАГРАММА ====== */
+function renderDiagram() {
+    let title = "";
+    let subtitle = "";
+    let blockClass = "";
+
+    const map = {
+        bot_explain: ["🤖 Объясняющий чат-бот", "Объясняет ценность услуг", "bot"],
+        bot_notify: ["🤖 Продающий чат-бот", "Возвращает клиентов", "bot"],
+        bot_funnel: ["🤖 Бот-воронка", "Ведёт к покупке", "bot"],
+        bot_support: ["🤖 Сервисный чат-бот", "Отвечает 24/7", "bot"],
+        bot_hr: ["🤖 HR-чат-бот", "Отбирает кандидатов и отвечает на вопросы", "bot"],
+        bot_onboarding: ["🤖 Онбординг-бот", "Помогает новым сотрудникам адаптироваться", "bot"],
+        human: ["👤 Чат-бот не нужен", "Пока можно работать вручную", "human"]
+    };
+
+
+    [title, subtitle, blockClass] = map[resultType];
+
     app.innerHTML = `
       <div class="diagram">
-
-        <div class="block client">
-          <div class="title">👤 Клиент пишет</div>
-          <div class="subtitle">Клиенты уже обращаются в бизнес</div>
+        <div class="block client show">
+          <div class="title">👤 Клиент</div>
+          <div class="subtitle">Обращается в бизнес</div>
         </div>
 
         <div class="arrow"></div>
 
-        <div class="block problem">
-          <div class="title">⚠️ Хаос и потери</div>
-          <div class="subtitle">Долго отвечают — клиенты уходят</div>
+        <div class="block ${blockClass} show">
+          <div class="title">${title}</div>
+          <div class="subtitle">${subtitle}</div>
         </div>
 
         <div class="arrow"></div>
 
-        <div class="block ${
-            resultType === "bot" ? "bot" :
-            resultType === "partial" ? "maybe-bot" :
-            "human"
-        }">
-          <div class="title">
-            ${
-              resultType === "bot" ? "🤖 Чат-бот" :
-              resultType === "partial" ? "🤖 Чат-бот частично" :
-              "👤 Менеджер"
-            }
-          </div>
-          <div class="subtitle">
-            ${explanation}
-          </div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <div class="block money">
+        <div class="block money show">
           <div class="title">💰 Результат</div>
-          <div class="subtitle">
-            ${
-              resultType === "bot" ? "Больше заявок, меньше хаоса" :
-              resultType === "partial" ? "Экономия времени и ресурсов" :
-              "Контроль вручную без автоматизации"
-            }
-          </div>
+          <div class="subtitle">Меньше потерь, больше денег</div>
         </div>
-
       </div>
 
-      <button class="save-btn" onclick="saveAsTxt()">💾 Сохранить кейс</button>
-      <button class="restart-btn" onclick="start()">🔁 Новый ИП</button>
+      <button class="save-btn" onclick="saveAsTxt()">💾 Сохранить</button>
+      <button class="restart-btn" onclick="renderStart()">🔁 Новый ИП</button>
     `;
-
-    // анимация блоков
-    const blocks = document.querySelectorAll('.block');
-    blocks.forEach((b, i) =>
-        setTimeout(() => b.classList.add('show'), i * 400)
-    );
 }
 
+/* ====== СОХРАНЕНИЕ ====== */
 function saveAsTxt() {
-    // Собираем текст
-    let text = `Кейс от ${new Date().toLocaleString()}\n\n`;
-    text += "Вопросы и ответы:\n";
+    let text = `${currentFlow.name} — разбор\n${new Date().toLocaleString()}\n\n`;
 
-    questions.forEach((q, i) => {
-        const ans = answers[i] || "—";
-        text += `${i+1}. ${q.text} — ${ans}\n`;
+    currentFlow.questions.forEach((q, i) => {
+        text += `${i+1}. ${q.text}\nОтвет: ${answers[i]}\n\n`;
     });
 
-    text += `\nРешение:\n`;
+    text += `Итог:\n${resultType}`;
 
-    // resultType и объяснение берем из renderDiagram
-    let resultText = "";
-    if (resultType === "bot") resultText = "🤖 Чат-бот\nБольше заявок, меньше хаоса";
-    else if (resultType === "partial") resultText = "🤖 Чат-бот частично\nЭкономия времени и ресурсов";
-    else resultText = "👤 Менеджер\nКонтроль вручную без автоматизации";
-
-    text += resultText;
-
-    // создаем файл и скачиваем
-    const blob = new Blob([text], {type: "text/plain"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+    const blob = new Blob([text], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
     a.download = `case_${Date.now()}.txt`;
     a.click();
-    URL.revokeObjectURL(url);
 }
 
+/* ====== ГЛАВНЫЙ ЭКРАН ====== */
+app.innerHTML = document.querySelector('.tree').outerHTML;
 
-function save() {
-    localStorage.setItem("case_" + Date.now(), JSON.stringify(answers));
-    alert("Кейс сохранён");
-}
 
-// стартовый экран
-app.innerHTML = `
-    <h1>Разберём бизнес за 5 минут</h1>
-    <div class="panel yes" onclick="start()">НАЧАТЬ</div>
-`;
+
+renderStart();
 </script>
+
+
 </body>
 </html>

@@ -124,3 +124,79 @@ h1 {
 .subtitle { font-size: 18px; font-weight: normal; opacity: 0.85; line-height: 1.3; }
 
 
+.tree {
+    position: relative;
+    width: 100%;
+    height: 100vh; /* 🔥 ОБЯЗАТЕЛЬНО */
+}
+
+
+.node {
+    width: 300px;
+    position: absolute;
+    padding: 20px 26px;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    text-align: center;
+}
+
+
+/* ====== ПОДСКАЗКИ ====== */
+.node::before {
+    content: attr(data-hint);
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.3;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 100;
+}
+
+/* маленький треугольник */
+.node::after {
+    content: "";
+    position: absolute;
+    bottom: 95%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0,0,0,0.85);
+    opacity: 0;
+    transition: opacity .2s;
+}
+
+/* при наведении */
+.node:hover::before,
+.node:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px);
+}
+
+
+
+/* центр */
+.center {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #2c3e50;
+    color: #fff;
+}
+
+/* ветки */
+.marketing { top: 15%; left: 50%; transform: translateX(-50%); background: #2e55cc; color: #fff; }
+.support   { top: 50%; right: 8%; transform: translateY(-50%); background: #450654; color: #fff; }
+.hiring    { bottom: 15%; left: 50%; transform: translateX(-50%); background: #a33ce7; color: #fff; }
+.onboarding{ top: 50%; left: 8%; transform: translateY(-50%); background: #2ecc71; color: #fff; }
